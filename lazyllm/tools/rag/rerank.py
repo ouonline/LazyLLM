@@ -5,6 +5,10 @@ from lazyllm.tools.rag.store import DocNode, MetadataMode
 from lazyllm.components.utils.downloader import ModelManager
 import numpy as np
 
+from lazyllm import TimeRecorder
+import cProfile
+from pstats import SortKey
+
 
 class Reranker(ModuleBase):
     registered_reranker = dict()
@@ -79,11 +83,14 @@ def get_cross_encoder_model(model_name: str):
 
 
 @Reranker.register_reranker(batch=True)
+@TimeRecorder.register('ModuleReranker')
 def ModuleReranker(
     nodes: List[DocNode], model: str, query: str, topk: int = -1, **kwargs
 ) -> List[DocNode]:
     if not nodes:
         return []
+    pr = cProfile.Profile()
+    pr.enable()
     cross_encoder = get_cross_encoder_model(model)
     query_pairs = [
         (query, node.get_text(metadata_mode=MetadataMode.EMBED)) for node in nodes
@@ -93,7 +100,10 @@ def ModuleReranker(
     if topk > 0:
         sorted_indices = sorted_indices[:topk]
 
-    return [nodes[i] for i in sorted_indices]
+    res = [nodes[i] for i in sorted_indices]
+    pr.disable()
+    pr.print_stats(SortKey.CUMULATIVE)
+    return res
 
 
 # User-defined similarity decorator

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa: F401
 
+from .time_recorder import TimeRecorder
 from .configs import config
 from .configs import * # noqa F401 of Config
 from .common import *  # noqa F403
@@ -79,6 +80,9 @@ __all__ = [
 
     # docs
     'add_doc',
+
+    # others
+    'TimeRecorder',
 ]
 
 __all__ += common.__all__  # noqa F405

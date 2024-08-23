@@ -1,11 +1,13 @@
 from lazyllm import ModuleBase
 from .store import DocNode
 from typing import List
+from lazyllm import TimeRecorder
 
 
 class Retriever(ModuleBase):
     __enable_request__ = False
 
+    @TimeRecorder.register('Retriever.__init__')
     def __init__(
         self,
         doc: object,
@@ -25,6 +27,7 @@ class Retriever(ModuleBase):
         self.topk = topk
         self.similarity_kw = kwargs  # kw parameters
 
+    @TimeRecorder.register('Retriever.forward')
     def forward(self, query: str) -> List[DocNode]:
         return self.doc.forward(
             func_name="retrieve",
