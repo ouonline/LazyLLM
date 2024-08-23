@@ -5,9 +5,9 @@ from lazyllm.tools.rag.store import DocNode, MetadataMode
 from lazyllm.components.utils.downloader import ModelManager
 import numpy as np
 
+from pstats import SortKey
 from lazyllm import TimeRecorder
 import cProfile
-from pstats import SortKey
 
 
 class Reranker(ModuleBase):
@@ -89,20 +89,21 @@ def ModuleReranker(
 ) -> List[DocNode]:
     if not nodes:
         return []
-    pr = cProfile.Profile()
-    pr.enable()
     cross_encoder = get_cross_encoder_model(model)
     query_pairs = [
         (query, node.get_text(metadata_mode=MetadataMode.EMBED)) for node in nodes
     ]
+    pr = cProfile.Profile()
+    pr.enable()
     scores = cross_encoder.predict(query_pairs)
+    pr.disable()
+    pr.print_stats(sort='tottime')
+    pr.dump_stats('perf_result.bin')
     sorted_indices = np.argsort(scores)[::-1]  # Descending order
     if topk > 0:
         sorted_indices = sorted_indices[:topk]
 
     res = [nodes[i] for i in sorted_indices]
-    pr.disable()
-    pr.print_stats(SortKey.CUMULATIVE)
     return res
 
 
