@@ -188,7 +188,7 @@ class BaseStore(ABC):
     def traverse_group(self, group_name: str) -> List[DocNode]:
         raise NotImplementedError("not implemented yet.")
 
-    # ----- XXX NOTE the following APIs are deprecated and will be removed in the future.
+    # XXX NOTE the following APIs are deprecated and will be removed in the future.
 
     @abstractmethod
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
@@ -240,7 +240,7 @@ class MapStore(BaseStore):
     def get_group_docs(self) -> Dict[str, Dict[str, DocNode]]:
         return self._group2docs
 
-    # ----- XXX NOTE the following APIs are deprecated and will be removed in the future.
+    # XXX NOTE the following APIs are deprecated and will be removed in the future.
 
     # override
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
@@ -295,12 +295,12 @@ class ChromadbStore(BaseStore):
     def traverse_group(self, group_name: str) -> List[DocNode]:
         return self._map_store.traverse_group(group_name)
 
-    # TODO deprecated APIs and will be removed in the future.
+    # XXX NOTE deprecated APIs and will be removed in the future.
     # override
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
         return self._map_store.get_nodes_by_files(files)
 
-    # TODO deprecated APIs and will be removed in the future.
+    # XXX NOTE deprecated APIs and will be removed in the future.
     # override
     def try_load_store(self) -> None:
         if not self._collections[LAZY_ROOT_NAME].peek(1)["ids"]:
@@ -325,7 +325,7 @@ class ChromadbStore(BaseStore):
             LOG.debug(f"build {group} nodes from chromadb: {nodes_dict.values()}")
         LOG.success("Successfully Built nodes from chromadb.")
 
-    # TODO deprecated APIs and will be removed in the future.
+    # XXX NOTE deprecated APIs and will be removed in the future.
     # override
     def try_save_nodes(self, nodes: List[DocNode]) -> None:
         if not nodes:
@@ -395,4 +395,39 @@ class ChromadbStore(BaseStore):
 # ---------------------------------------------------------------------------- #
 
 class MilvusStore(BaseStore):
-    pass
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def update_nodes(self, nodes: List[DocNode]) -> None:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def get_node(self, group_name: str, node_id: str) -> Optional[DocNode]:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def remove_nodes(self, nodes: List[DocNode]) -> None:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def has_group(self, group_name: str) -> bool:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def traverse_group(self, group_name: str) -> List[DocNode]:
+        raise NotImplementedError("not implemented yet.")
+
+    # XXX NOTE the following APIs are deprecated and will be removed in the future.
+
+    @abstractmethod
+    def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def try_load_store(self) -> None:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def try_save_nodes(self) -> None:
+        raise NotImplementedError("not implemented yet.")
