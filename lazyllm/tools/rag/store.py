@@ -6,11 +6,9 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import chromadb
 from lazyllm import LOG, config
 from chromadb.api.models.Collection import Collection
-from index import DefaultIndex
 import threading
 import json
 import time
-from typing import override
 
 
 LAZY_ROOT_NAME = "lazyllm_root"
@@ -209,32 +207,32 @@ class MapStore(BaseStore):
         }
         self._file_node_map = {}
 
-    @override
+    # override
     def update_nodes(self, nodes: List[DocNode]) -> None:
         for node in nodes:
             if node.group == LAZY_ROOT_NAME and "file_name" in node.metadata:
                 self._file_node_map[node.metadata["file_name"]] = node
             self._group2docs[node.group][node.uid] = node
 
-    @override
+    # override
     def get_node(self, group_name: str, node_id: str) -> Optional[DocNode]:
         return self._group2docs.get(group_name, {}).get(node_id)
 
-    @override
+    # override
     def remove_nodes(self, nodes: List[DocNode]) -> None:
         for node in nodes:
             assert node.group in self._group2docs, f"Unexpected node group {node.group}"
             self._group2docs[node.group].pop(node.uid, None)
 
-    @override
+    # override
     def has_group(self, group_name: str) -> bool:
         return len(self._group2docs[group_name]) > 0
 
-    @override
+    # override
     def traverse_group(self, group_name: str) -> List[DocNode]:
         return list(self._group2docs.get(group_name, {}).values())
 
-    @override
+    # override
     def get_index(self, index_type: str = 'default', *args, **kwargs) -> DefaultIndex:
         assert index_type == 'default', 'only "default" index type is supported currently.'
         return DefaultIndex(*args, **kwargs)
@@ -243,7 +241,7 @@ class MapStore(BaseStore):
         return self._group2docs
 
     # TODO deprecated and should be removed in the future.
-    @override
+    # override
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
         nodes = []
         for file in files:
@@ -267,33 +265,33 @@ class ChromadbStore(BaseStore):
         self._placeholder = {k: [-1] * len(e("a")) for k, e in embed.items()} if embed else {EMBED_DEFAULT_KEY: []}
         self._try_load_store()
 
-    @override
+    # override
     def update_nodes(self, nodes: List[DocNode]) -> None:
         self._map_store.update_nodes(nodes)
         self._try_save_nodes(nodes)
 
-    @override
+    # override
     def get_node(self, group_name: str, node_id: str) -> Optional[DocNode]:
         return self._map_store.get_node(group_name, node_id)
 
-    @override
+    # override
     def remove_nodes(self, nodes: List[DocNode]) -> None:
         return self._map_store.remove_nodes(nodes)
 
-    @override
+    # override
     def has_group(self, group_name: str) -> bool:
         return self._map_store.has_group(group_name)
 
-    @override
+    # override
     def traverse_group(self, group_name: str) -> List[DocNode]:
         return self._map_store.traverse_group(group_name)
 
-    @override
+    # override
     def get_index(self, index_type: str = 'default', *args, **kwargs) -> DefaultIndex:
         return self._map_store.get_index(index_type, *args, **kwargs)
 
     # TODO deprecated and should be removed in the future.
-    @override
+    # override
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
         return self._map_store.get_nodes_by_files(files)
 
@@ -309,7 +307,8 @@ class ChromadbStore(BaseStore):
             self._map_store.update_nodes(nodes)
 
         # Rebuild relationships
-        for group, nodes_dict in self._store.items():
+        group2docs = self._map_store.get_group_docs()
+        for group, nodes_dict in group2docs.items():
             for node in nodes_dict.values():
                 if node.parent:
                     parent_uid = node.parent
