@@ -188,10 +188,6 @@ class BaseStore(ABC):
     def traverse_group(self, group_name: str) -> List[DocNode]:
         raise NotImplementedError("not implemented yet.")
 
-    @abstractmethod
-    def get_index(self, index_type: str = 'default') -> DefaultIndex:
-        raise NotImplementedError("not implemented yet.")
-
     # TODO deprecated and should be removed in the future.
     @abstractmethod
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
@@ -231,11 +227,6 @@ class MapStore(BaseStore):
     # override
     def traverse_group(self, group_name: str) -> List[DocNode]:
         return list(self._group2docs.get(group_name, {}).values())
-
-    # override
-    def get_index(self, index_type: str = 'default', *args, **kwargs) -> DefaultIndex:
-        assert index_type == 'default', 'only "default" index type is supported currently.'
-        return DefaultIndex(*args, **kwargs)
 
     def get_group_docs(self) -> Dict[str, Dict[str, DocNode]]:
         return self._group2docs
@@ -285,10 +276,6 @@ class ChromadbStore(BaseStore):
     # override
     def traverse_group(self, group_name: str) -> List[DocNode]:
         return self._map_store.traverse_group(group_name)
-
-    # override
-    def get_index(self, index_type: str = 'default', *args, **kwargs) -> DefaultIndex:
-        return self._map_store.get_index(index_type, *args, **kwargs)
 
     # TODO deprecated and should be removed in the future.
     # override
