@@ -6,9 +6,11 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import chromadb
 from lazyllm import LOG, config
 from chromadb.api.models.Collection import Collection
+from index import DefaultIndex
 import threading
 import json
 import time
+from typing import override
 
 
 LAZY_ROOT_NAME = "lazyllm_root"
@@ -189,7 +191,7 @@ class BaseStore(ABC):
         raise NotImplementedError("not implemented yet.")
 
     @abstractmethod
-    def get_index(self, index_type: str = 'default') -> Index:
+    def get_index(self, index_type: str = 'default') -> DefaultIndex:
         raise NotImplementedError("not implemented yet.")
 
     # TODO deprecated and should be removed in the future.
@@ -216,7 +218,7 @@ class MapStore(BaseStore):
 
     @override
     def get_node(self, group_name: str, node_id: str) -> Optional[DocNode]:
-        return self._group2docs.get(group, {}).get(node_id)
+        return self._group2docs.get(group_name, {}).get(node_id)
 
     @override
     def remove_nodes(self, nodes: List[DocNode]) -> None:
@@ -226,14 +228,14 @@ class MapStore(BaseStore):
 
     @override
     def has_group(self, group_name: str) -> bool:
-        return len(self._group2docs[group]) > 0
+        return len(self._group2docs[group_name]) > 0
 
     @override
     def traverse_group(self, group_name: str) -> List[DocNode]:
-        return list(self._group2docs.get(group, {}).values())
+        return list(self._group2docs.get(group_name, {}).values())
 
     @override
-    def get_index(self, index_type: str = 'default', *args, **kwargs) -> Index:
+    def get_index(self, index_type: str = 'default', *args, **kwargs) -> DefaultIndex:
         assert index_type == 'default', 'only "default" index type is supported currently.'
         return DefaultIndex(*args, **kwargs)
 
@@ -287,7 +289,7 @@ class ChromadbStore(BaseStore):
         return self._map_store.traverse_group(group_name)
 
     @override
-    def get_index(self, index_type: str = 'default', *args, **kwargs) -> Index:
+    def get_index(self, index_type: str = 'default', *args, **kwargs) -> DefaultIndex:
         return self._map_store.get_index(index_type, *args, **kwargs)
 
     # TODO deprecated and should be removed in the future.
@@ -385,3 +387,4 @@ class ChromadbStore(BaseStore):
 # ---------------------------------------------------------------------------- #
 
 class MilvusStore(BaseStore):
+    pass
