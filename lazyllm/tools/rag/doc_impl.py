@@ -7,6 +7,7 @@ from .transform import (NodeTransform, FuncNodeTransform, SentenceSplitter, LLMP
                         AdaptiveTransform, make_transform, TransformArgs)
 from .store import MapStore, DocNode, ChromadbStore, LAZY_ROOT_NAME, BaseStore
 from .data_loaders import DirectoryReader
+from .index import DefaultIndex
 
 _transmap = dict(function=FuncNodeTransform, sentencesplitter=SentenceSplitter, llm=LLMParser)
 
@@ -43,7 +44,7 @@ class DocImpl:
         self.node_groups = node_groups
 
         self.store = self._get_store()
-        self.index = self.store.get_index(self.embed)
+        self.index = DefaultIndex(self.embed, self.store)
         if not self.store.has_group(LAZY_ROOT_NAME):
             root_nodes = self.directory_reader.load_data()
             self.store.update_nodes(root_nodes)
