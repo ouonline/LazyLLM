@@ -270,30 +270,30 @@ class ChromadbStore(BaseStore):
         self._map_store.update_nodes(nodes)
         self._try_save_nodes(nodes)
 
-    @abstractmethod
+    @override
     def get_node(self, group_name: str, node_id: str) -> Optional[DocNode]:
-        raise NotImplementedError("not implemented yet.")
+        return self._map_store.get_node(group_name, node_id)
 
-    @abstractmethod
+    @override
     def remove_nodes(self, nodes: List[DocNode]) -> None:
-        raise NotImplementedError("not implemented yet.")
+        return self._map_store.remove_nodes(nodes)
 
-    @abstractmethod
+    @override
     def has_group(self, group_name: str) -> bool:
-        raise NotImplementedError("not implemented yet.")
+        return self._map_store.has_group(group_name)
 
-    @abstractmethod
+    @override
     def traverse_group(self, group_name: str) -> List[DocNode]:
-        raise NotImplementedError("not implemented yet.")
+        return self._map_store.traverse_group(group_name)
 
-    @abstractmethod
-    def get_index(self, index_type: str = 'default') -> Index:
-        raise NotImplementedError("not implemented yet.")
+    @override
+    def get_index(self, index_type: str = 'default', *args, **kwargs) -> Index:
+        return self._map_store.get_index(index_type, *args, **kwargs)
 
     # TODO deprecated and should be removed in the future.
-    @abstractmethod
+    @override
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
-        raise NotImplementedError("not implemented yet.")
+        return self._map_store.get_nodes_by_files(files)
 
     def _try_load_store(self) -> None:
         if not self._collections[LAZY_ROOT_NAME].peek(1)["ids"]:
@@ -381,3 +381,7 @@ class ChromadbStore(BaseStore):
         assert group in self._collections, f"group {group} not found."
         collection = self._collections[group]
         return collection.peek(collection.count())
+
+# ---------------------------------------------------------------------------- #
+
+class MilvusStore(BaseStore):
