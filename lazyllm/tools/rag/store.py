@@ -188,9 +188,18 @@ class BaseStore(ABC):
     def traverse_group(self, group_name: str) -> List[DocNode]:
         raise NotImplementedError("not implemented yet.")
 
-    # TODO deprecated and should be removed in the future.
+    # ----- XXX NOTE the following APIs are deprecated and will be removed in the future.
+
     @abstractmethod
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def try_load_store(self) -> None:
+        raise NotImplementedError("not implemented yet.")
+
+    @abstractmethod
+    def try_save_nodes(self) -> None:
         raise NotImplementedError("not implemented yet.")
 
 # ---------------------------------------------------------------------------- #
@@ -231,7 +240,8 @@ class MapStore(BaseStore):
     def get_group_docs(self) -> Dict[str, Dict[str, DocNode]]:
         return self._group2docs
 
-    # TODO deprecated and should be removed in the future.
+    # ----- XXX NOTE the following APIs are deprecated and will be removed in the future.
+
     # override
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
         nodes = []
@@ -239,6 +249,14 @@ class MapStore(BaseStore):
             if file in self._file_node_map:
                 nodes.append(self._file_node_map[file])
         return nodes
+
+    # override
+    def try_load_store(self):
+        pass
+
+    # override
+    def try_save_nodes(self):
+        pass
 
 # ---------------------------------------------------------------------------- #
 
@@ -254,12 +272,12 @@ class ChromadbStore(BaseStore):
             for group in node_groups
         }
         self._placeholder = {k: [-1] * len(e("a")) for k, e in embed.items()} if embed else {EMBED_DEFAULT_KEY: []}
-        self._try_load_store()
+        self.try_load_store()
 
     # override
     def update_nodes(self, nodes: List[DocNode]) -> None:
         self._map_store.update_nodes(nodes)
-        self._try_save_nodes(nodes)
+        self.try_save_nodes(nodes)
 
     # override
     def get_node(self, group_name: str, node_id: str) -> Optional[DocNode]:
@@ -277,12 +295,14 @@ class ChromadbStore(BaseStore):
     def traverse_group(self, group_name: str) -> List[DocNode]:
         return self._map_store.traverse_group(group_name)
 
-    # TODO deprecated and should be removed in the future.
+    # TODO deprecated APIs and will be removed in the future.
     # override
     def get_nodes_by_files(self, files: List[str]) -> List[DocNode]:
         return self._map_store.get_nodes_by_files(files)
 
-    def _try_load_store(self) -> None:
+    # TODO deprecated APIs and will be removed in the future.
+    # override
+    def try_load_store(self) -> None:
         if not self._collections[LAZY_ROOT_NAME].peek(1)["ids"]:
             LOG.info("No persistent data found, skip the rebuilding phrase.")
             return
@@ -305,7 +325,9 @@ class ChromadbStore(BaseStore):
             LOG.debug(f"build {group} nodes from chromadb: {nodes_dict.values()}")
         LOG.success("Successfully Built nodes from chromadb.")
 
-    def _try_save_nodes(self, nodes: List[DocNode]) -> None:
+    # TODO deprecated APIs and will be removed in the future.
+    # override
+    def try_save_nodes(self, nodes: List[DocNode]) -> None:
         if not nodes:
             return
         # Note: It's caller's duty to make sure this batch of nodes has the same group.
@@ -338,7 +360,7 @@ class ChromadbStore(BaseStore):
             LOG.debug(f"Saved {group} nodes {ids} to chromadb.")
 
     def _find_node_by_uid(self, uid: str) -> Optional[DocNode]:
-        for nodes_by_category in self._store.values():
+        for nodes_by_category in self._map_store.get_group_docs().values():
             if uid in nodes_by_category:
                 return nodes_by_category[uid]
         raise ValueError(f"UID {uid} not found in store.")
